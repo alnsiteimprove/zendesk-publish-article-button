@@ -1,0 +1,15 @@
+{
+  "name": "Mark for HelpCenter",
+  "author": {
+    "name": "Brian Lundkvist",
+    "email": "blu@siteimprove.com",
+    "url": ""
+  },
+  "defaultLocale": "en",
+  "private": true,
+  "location": { "zendesk":
+    { "ticket_sidebar": "assets/iframe.html" }
+  },
+  "version": "1.0",
+  "frameworkVersion": "2.0"
+}

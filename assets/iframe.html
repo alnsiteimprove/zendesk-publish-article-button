@@ -1,0 +1,77 @@
+<html>
+	<head>
+		<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js" />
+		<script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+	</head>
+	<body>
+		<style>
+			#markunmark, #article_result{
+				margin-left: 30%;
+			}
+			.data {
+			  color: #363;
+			  padding-left: 6px;
+			}
+			#content td {
+				font-size: 12px;
+				padding-top: 2px;
+			}
+		</style>
+		<script type="text/javascript">
+			var client = ZAFClient.init();
+			var ticket_comments="", ticket_topic;
+			
+			function tryCreatingArticle(){
+				client.get('ticket').then(function(data){ getTicketData(data);});
+			}
+			
+			var getTicketData = function (data){
+				ticket_topic =  data.ticket.subject;
+				if(data.ticket.comments.length>1){
+					for(var i = data.ticket.comments.length-1; i>-1; i--){
+						ticket_comments += data.ticket.comments[i].author.name + '<br />';
+						ticket_comments += data.ticket.comments[i].value+ '<br /><hr />';
+					}
+				}else{
+					ticket_comments = data.ticket.description;
+				}
+				
+				createArticle();
+			}
+			
+			function createArticle(){
+				client.get('currentUser.id').then(function(d){
+					var postSettings = {
+						url: 'https://siteimprove.zendesk.com/api/v2/community/posts.json',
+						type: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify({	topic_id: 200363366, author_id: d["currentUser.id"], title: ticket_topic, details: ticket_comments })
+					};
+					
+					client.request(postSettings).then(
+						function() { articlePostingSuccess(); },
+						function() { articlePostingError(); }
+					);
+				});
+			};
+			
+			function articlePostingSuccess(){
+				client.set('ticket.comment.text', 'Help Center article suggestions published' );
+				client.set('ticket.comment.type', 'internalNote');
+				document.getElementById('markunmark').disabled = true;
+				document.getElementById('article_result').style = "visibility:visible;color:green;font-weight:bold";
+				document.getElementById('article_result').innerText = "Article published!";
+			}
+			function articlePostingError(){
+				document.getElementById('markunmark').disabled = true;
+				document.getElementById('article_result').style = "visibility:visible;color:red;font-weight:bold";
+				document.getElementById('article_result').innerText = "Publishing failed!";
+			}
+		</script>
+
+		<div id="content">
+			<button id="markunmark" title="mark for article" onclick="tryCreatingArticle()">Mark for HC Article</button>
+			<label id="article_result" style="visibility:hidden;"></label>
+		</div>
+	</body>
+</html>
